@@ -1,18 +1,17 @@
 import { useEffect, useState } from "react";
-import "./Pages.css"
+import "./Pages.css";
 
 function InventoryPage() {
     const [items, setItems] = useState([]);
+    const [itemId, setItemId] = useState('');
+    const [stock, setStock] = useState('');
 
     useEffect(() => {
         async function fetchItems() {
             try {
                 const response = await fetch('http://localhost:5000/api/items-with-inventory');
-                console.log(response);
-
-                if (!response.ok) throw new Error('Failed to fetch');
+                if (!response.ok) throw new Error('Failed to fetch items');
                 const data = await response.json();
-                console.log(data);
                 setItems(data);
             } catch (err) {
                 console.error('Error fetching items with inventory:', err);
@@ -21,6 +20,39 @@ function InventoryPage() {
 
         fetchItems();
     }, []);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch('http://localhost:5000/api/inventory', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    item_id: itemId,
+                    stock: parseInt(stock, 10)
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Failed to update inventory');
+
+            alert('Inventory updated successfully!');
+            setItemId('');
+            setStock('');
+
+            // Refresh inventory table
+            const updated = await fetch('http://localhost:5000/api/items-with-inventory');
+            const updatedData = await updated.json();
+            setItems(updatedData);
+
+        } catch (error) {
+            console.error('Error:', error.message);
+            alert(error.message);
+        }
+    };
+
     return (
         <div className="page">
             <div className="card">
@@ -34,22 +66,46 @@ function InventoryPage() {
                                 <tr>
                                     <th>Item Name</th>
                                     <th>Price</th>
-                                    <th>Quantity in Stock</th>
+                                    <th>Quantity </th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {items.map((item) => (
-                                    <tr key={item.id}>
-                                        <td>{item.name}</td>
-                                        <td>${Number(item.price).toFixed(2)}</td>
-                                        <td>{item.stock}</td>
-                                        <td>
-                                            <button className="btn btn-secondary">Update</button>
+                                {items.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="4" style={{
+                                            textAlign: 'center',
+                                            padding: '2rem',
+                                            fontSize: '1.5rem',
+                                            fontWeight: '600',
+                                            color: 'red',
+                                            borderRadius: '8px',
+                                            letterSpacing: '1px',
+                                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+                                        }}>
+                                            <span style={{ border: '2px solid red', padding: '0.5rem',borderRadius: '8px' }}> 🚫 Out of Stock</span>
                                         </td>
                                     </tr>
-                                ))}
+
+                                ) : (
+                                    items.map((item) => (
+                                        <tr key={item.id}>
+                                            <td>{item.name}</td>
+                                            <td>${Number(item.price).toFixed(2)}</td>
+                                            <td>{item.stock > 0 ? item.stock : 'No stock'}</td>
+                                            <td>
+                                                <button
+                                                    className="btn btn-secondary"
+                                                    onClick={() => setItemId(item.id)}
+                                                >
+                                                    Update
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
+
                         </table>
                     </div>
                 </div>
@@ -60,20 +116,37 @@ function InventoryPage() {
                     <h2 className="card-title">Update Inventory</h2>
                 </div>
                 <div className="card-content">
-                    <form className="form">
+                    <form className="form" onSubmit={handleSubmit}>
                         <div className="form-group">
                             <label className="form-label">Item</label>
-                            <select className="form-input">
+                            <select
+                                className="form-input"
+                                value={itemId}
+                                onChange={(e) => setItemId(e.target.value)}
+                                required
+                            >
                                 <option value="">Select an item</option>
-                                <option value="1">T-Shirt</option>
-                                <option value="2">Jeans</option>
-                                <option value="3">Sneakers</option>
+                                {items.map((item) => (
+                                    <option key={item.id} value={item.id}>
+                                        {item.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
+
                         <div className="form-group">
                             <label className="form-label">New Quantity</label>
-                            <input type="number" className="form-input" placeholder="0" />
+                            <input
+                                type="number"
+                                className="form-input"
+                                value={stock}
+                                onChange={(e) => setStock(e.target.value)}
+                                placeholder="0"
+                                min="1"
+                                required
+                            />
                         </div>
+
                         <button type="submit" className="btn btn-primary">
                             Update Inventory
                         </button>
@@ -81,7 +154,7 @@ function InventoryPage() {
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
-export default InventoryPage
+export default InventoryPage;
