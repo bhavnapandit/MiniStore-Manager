@@ -1,12 +1,27 @@
+import { useEffect, useState } from "react";
 import "./Pages.css"
 
 function ItemsPage() {
-    // Sample data - in a real app, this would come from a database
-    const items = [
-        { id: 1, name: "T-Shirt", description: "Cotton t-shirt", price: 19.99, createdAt: "2023-05-15" },
-        { id: 2, name: "Jeans", description: "Blue denim jeans", price: 49.99, createdAt: "2023-05-10" },
-        { id: 3, name: "Sneakers", description: "Running shoes", price: 79.99, createdAt: "2023-05-05" },
-    ]
+    const [items, setItems] = useState([]);
+
+    async function fetchAllItems() {
+        try {
+            const response = await fetch('http://localhost:5000/api/items');
+            console.log(response);
+            if (!response.ok) {
+                throw new Error('Failed to fetch items');
+            }
+            const items = await response.json();
+            console.log('Items:', items);
+            setItems(items);
+        } catch (error) {
+            console.error('Error fetching items:', error);
+        }
+    }
+
+    useEffect(() => {
+        fetchAllItems();
+    }, []);
 
     return (
         <div className="page">
@@ -31,7 +46,7 @@ function ItemsPage() {
                                     <tr key={item.id}>
                                         <td>{item.name}</td>
                                         <td>{item.description}</td>
-                                        <td>${item.price.toFixed(2)}</td>
+                                        <td>${Number(item.price).toFixed(2)}</td>
                                         <td>{item.createdAt}</td>
                                         <td>
                                             <div className="flex gap-2">

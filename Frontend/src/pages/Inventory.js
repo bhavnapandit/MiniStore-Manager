@@ -1,13 +1,26 @@
+import { useEffect, useState } from "react";
 import "./Pages.css"
 
 function InventoryPage() {
-    // Sample data
-    const inventory = [
-        { id: 1, itemName: "T-Shirt", price: 19.99, quantity: 100, lastUpdated: "2023-05-15" },
-        { id: 2, itemName: "Jeans", price: 49.99, quantity: 50, lastUpdated: "2023-05-10" },
-        { id: 3, itemName: "Sneakers", price: 79.99, quantity: 30, lastUpdated: "2023-05-05" },
-    ]
+    const [items, setItems] = useState([]);
 
+    useEffect(() => {
+        async function fetchItems() {
+            try {
+                const response = await fetch('http://localhost:5000/api/items-with-inventory');
+                console.log(response);
+
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                console.log(data);
+                setItems(data);
+            } catch (err) {
+                console.error('Error fetching items with inventory:', err);
+            }
+        }
+
+        fetchItems();
+    }, []);
     return (
         <div className="page">
             <div className="card">
@@ -22,17 +35,15 @@ function InventoryPage() {
                                     <th>Item Name</th>
                                     <th>Price</th>
                                     <th>Quantity in Stock</th>
-                                    <th>Last Updated</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {inventory.map((item) => (
+                                {items.map((item) => (
                                     <tr key={item.id}>
-                                        <td>{item.itemName}</td>
-                                        <td>${item.price.toFixed(2)}</td>
-                                        <td>{item.quantity}</td>
-                                        <td>{item.lastUpdated}</td>
+                                        <td>{item.name}</td>
+                                        <td>${Number(item.price).toFixed(2)}</td>
+                                        <td>{item.stock}</td>
                                         <td>
                                             <button className="btn btn-secondary">Update</button>
                                         </td>
