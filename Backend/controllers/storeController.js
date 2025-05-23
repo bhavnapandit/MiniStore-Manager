@@ -77,6 +77,33 @@ export const addInventory = async (req, res) => {
     }
 };
 
+export const deleteInventory = async (req, res) => {
+    try {
+        const { item_id } = req.params;
+
+        if (!item_id) {
+            return res.status(400).json({ error: 'item_id is required' });
+        }
+
+        // Set stock to zero instead of deleting
+        const [result] = await db.execute(
+            'UPDATE inventory SET stock = 0 WHERE item_id = ?',
+            [item_id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Inventory item not found' });
+        }
+
+        res.status(200).json({ message: 'Inventory stock set to zero successfully' });
+    } catch (error) {
+        console.error('Error setting inventory stock to zero:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+
 export const getItemsWithInventory = async (req, res) => {
     try {
         const query = `
@@ -242,5 +269,155 @@ export const deletePurchase = async (req, res) => {
         await db.rollback();
         console.error('Error deleting purchase:', error);
         res.status(500).json({ error: 'Failed to delete purchase' });
+    }
+};
+
+export const addShipping = async (req, res) => {
+    const { purchase_id, shipping_date, shipping_address, status, items } = req.body;
+
+    if (!purchase_id || !items || !items.length) {
+        return res.status(400).json({ error: "Missing purchase or items" });
+    }
+
+    try {
+        await db.beginTransaction();
+
+        const [purchaseItemsRows] = await db.query(
+            `SELECT item_id, quantity FROM purchase_items WHERE purchase_id = ?`,
+            [purchase_id]
+        );
+
+        const purchasedItemMap = {};
+        for (const { item_id, quantity } of purchaseItemsRows) {
+            purchasedItemMap[item_id] = quantity;
+        }
+
+        for (const { item_id, quantity } of items) {
+            if (!purchasedItemMap[item_id]) {
+                return res.status(400).json({
+                    error: `Item with ID ${item_id} was not part of the original purchase.`,
+                });
+            }
+
+            if (quantity > purchasedItemMap[item_id]) {
+                return res.status(400).json({
+                    error: `Cannot ship more quantity than purchased for item ID ${item_id}.`,
+                });
+            }
+        }
+
+        const [shippingResult] = await db.query(
+            `INSERT INTO shipping (purchase_id, shipping_date, shipping_address, status) VALUES (?, ?, ?, ?)`,
+            [purchase_id, shipping_date || new Date(), shipping_address || null, status || "pending"]
+        );
+
+        const shipping_id = shippingResult.insertId;
+
+        for (const { item_id, quantity } of items) {
+            await db.query(
+                `INSERT INTO shipping_items (shipping_id, item_id, quantity) VALUES (?, ?, ?)`,
+                [shipping_id, item_id, quantity]
+            );
+
+            await db.query(
+                `UPDATE inventory SET stock = stock - ? WHERE id = ? AND stock >= ?`,
+                [quantity, item_id, quantity]
+            );
+        }
+
+        await db.commit();
+
+        res.status(201).json({ success: true, shipping_id });
+
+    } catch (error) {
+        await db.rollback();
+        console.error(error);
+        res.status(500).json({ error: "Failed to record shipping" });
+    }
+};
+
+export const getAllShipping = async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM shipping');
+        res.json(rows);
+    } catch (error) {
+        console.error("Error fetching shipping records:", error);
+        res.status(500).json({ error: "Failed to fetch shipping records" });
+    }
+};
+
+export const getPurchaseDetailsById = async (req, res) => {
+    const purchaseId = req.params.id;
+
+    try {
+        const [rows] = await db.query(`
+            SELECT 
+                p.id AS purchase_id,
+                p.customer_name,
+                p.total_amount,
+                p.purchase_date,
+                i.name AS item_name,
+                pi.quantity,
+                i.price
+            FROM purchases p
+            JOIN purchase_items pi ON p.id = pi.purchase_id
+            JOIN items i ON pi.item_id = i.id
+            WHERE p.id = ?
+            ORDER BY p.purchase_date DESC;
+        `, [purchaseId]);
+
+        res.status(200).json(rows);
+    } catch (error) {
+        console.error("Error fetching purchase details:", error);
+        res.status(500).json({ error: "Failed to fetch purchase details" });
+    }
+};
+
+
+export const deleteShipping = async (req, res) => {
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).json({ error: "Missing shipping ID" });
+    }
+
+    try {
+        await db.beginTransaction();
+
+        const [shippedItems] = await db.query(
+            `SELECT item_id, quantity FROM shipping_items WHERE shipping_id = ?`,
+            [id]
+        );
+
+        for (const { item_id, quantity } of shippedItems) {
+            await db.query(
+                `UPDATE inventory SET stock = stock + ? WHERE id = ?`,
+                [quantity, item_id]
+            );
+        }
+
+        await db.query(
+            `DELETE FROM shipping_items WHERE shipping_id = ?`,
+            [id]
+        );
+
+
+        const [result] = await db.query(
+            `DELETE FROM shipping WHERE id = ?`,
+            [id]
+        );
+
+        await db.commit();
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Shipping record not found" });
+        }
+
+        res.status(200).json({ message: "Shipping record deleted successfully" });
+
+    } catch (error) {
+        await db.rollback();
+        console.error("Error deleting shipping:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 };

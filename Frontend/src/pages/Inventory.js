@@ -6,8 +6,7 @@ function InventoryPage() {
     const [itemId, setItemId] = useState('');
     const [stock, setStock] = useState('');
 
-    useEffect(() => {
-        async function fetchItems() {
+ async function fetchItems() {
             try {
                 const response = await fetch('http://localhost:5000/api/items-with-inventory');
                 if (!response.ok) throw new Error('Failed to fetch items');
@@ -17,7 +16,7 @@ function InventoryPage() {
                 console.error('Error fetching items with inventory:', err);
             }
         }
-
+    useEffect(() => {
         fetchItems();
     }, []);
 
@@ -53,6 +52,30 @@ function InventoryPage() {
         }
     };
 
+    const handleDelete = async (item_id) => {
+        const confirmDelete = window.confirm("Are you sure you want to delete this inventory item?");
+        if (!confirmDelete) return;
+
+        try {
+            const res = await fetch(`http://localhost:5000/api/inventory/${item_id}`, {
+                method: "DELETE",
+            });
+
+            if (res.ok) {
+                setItems(items.filter(item => item.item_id !== item_id));
+                fetchItems();
+                alert("Inventory item deleted.");
+            } else {
+                const errorData = await res.json();
+                alert(errorData.error || "Failed to delete item.");
+            }
+        } catch (err) {
+            console.error("Error deleting item:", err);
+            alert("Server error");
+        }
+    };
+
+
     return (
         <div className="page">
             <div className="card">
@@ -83,7 +106,7 @@ function InventoryPage() {
                                             letterSpacing: '1px',
                                             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
                                         }}>
-                                            <span style={{ border: '2px solid red', padding: '0.5rem',borderRadius: '8px' }}> 🚫 Out of Stock</span>
+                                            <span style={{ border: '2px solid red', padding: '0.5rem', borderRadius: '8px' }}> 🚫 Out of Stock</span>
                                         </td>
                                     </tr>
 
@@ -93,12 +116,18 @@ function InventoryPage() {
                                             <td>{item.name}</td>
                                             <td>${Number(item.price).toFixed(2)}</td>
                                             <td>{item.stock > 0 ? item.stock : 'No stock'}</td>
-                                            <td>
+                                            <td className="flex gap-2">
                                                 <button
                                                     className="btn btn-secondary"
                                                     onClick={() => setItemId(item.id)}
                                                 >
                                                     Update
+                                                </button>
+                                                <button
+                                                    className="btn btn-danger"
+                                                    onClick={() =>handleDelete(item.id)}
+                                                >
+                                                    Delete
                                                 </button>
                                             </td>
                                         </tr>

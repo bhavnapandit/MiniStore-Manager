@@ -100,23 +100,23 @@ function ItemsPage() {
         }
     };
 
-    const handleDeleteItem = async (itemId) => {
-        try {
-            const response = await fetch(`http://localhost:5000/api/items/${itemId}`, {
-                method: 'DELETE',
-            });
+    // const handleDeleteItem = async (itemId) => {
+    //     try {
+    //         const response = await fetch(`http://localhost:5000/api/items/${itemId}`, {
+    //             method: 'DELETE',
+    //         });
 
-            if (!response.ok) {
-                throw new Error('Failed to delete item');
-            }
+    //         if (!response.ok) {
+    //             throw new Error('Failed to delete item');
+    //         }
 
-            alert('Item deleted successfully');
-            fetchAllItems();
-        } catch (error) {
-            console.error('Error deleting item:', error);
-            alert(error.message);
-        }
-    };
+    //         alert('Item deleted successfully');
+    //         fetchAllItems();
+    //     } catch (error) {
+    //         console.error('Error deleting item:', error);
+    //         alert(error.message);
+    //     }
+    // };
 
     return (
         <div className="page">
@@ -206,7 +206,6 @@ function ItemsPage() {
                                                     <td>
                                                         <div className="flex gap-2">
                                                             <button className="btn btn-secondary" onClick={() => handleEditClick(item)}>Edit</button>
-                                                            <button className="btn btn-danger" onClick={() => handleDeleteItem(item.id)}>Delete</button>
                                                         </div>
                                                     </td>
                                                 </>

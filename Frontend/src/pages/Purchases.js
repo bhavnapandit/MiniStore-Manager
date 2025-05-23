@@ -9,6 +9,25 @@ function PurchasesPage() {
     const [selectedItems, setSelectedItems] = useState([]);
     const [itemsList, setItemsList] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [viewedItems, setViewedItems] = useState([]);
+    const [viewedPurchaseId, setViewedPurchaseId] = useState(null);
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+
+    const handleViewPurchase = async (purchaseId) => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/purchase-details/${purchaseId}`);
+            if (!response.ok) throw new Error('Failed to fetch purchase details');
+            const data = await response.json();
+            console.log(data);
+
+            setViewedItems(data);
+            setViewedPurchaseId(purchaseId);
+            setViewModalOpen(true);
+        } catch (error) {
+            console.error("Error fetching purchase details:", error);
+            alert(`Error: ${error.message}`);
+        }
+    };
 
     // Fetch all purchases
     const fetchAllPurchases = async () => {
@@ -202,6 +221,13 @@ function PurchasesPage() {
                                             <td>
                                                 <div className="flex gap-2">
                                                     <button
+                                                        className="btn btn-secondary"
+                                                        onClick={() => handleViewPurchase(purchase.id)}
+                                                    >
+                                                        View
+                                                    </button>
+
+                                                    <button
                                                         className="btn btn-danger"
                                                         onClick={() => handleDeletePurchase(purchase.id)}
                                                     >
@@ -217,6 +243,85 @@ function PurchasesPage() {
                     </div>
                 </div>
             </div>
+            {viewModalOpen && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <div style={{ padding: "1rem" }}>
+                            <div
+                                style={{
+                                    position: "relative",
+                                    overflowX: "auto",
+                                    marginBottom: "1rem",
+                                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                                    borderRadius: "8px",
+                                    backgroundColor: "#fff",
+                                    padding: "1rem",
+                                }}
+                            >
+                                <button
+                                    style={{
+                                        position: "absolute",
+                                        top: "1rem",
+                                        right: "1rem",
+                                        padding: "0.25rem 0.75rem",
+                                        backgroundColor: "#ef4444",
+                                        color: "white",
+                                        border: "none",
+                                        borderRadius: "4px",
+                                        cursor: "pointer",
+                                        fontWeight: "600",
+                                    }}
+                                    onClick={() => setViewModalOpen(false)}
+                                >
+                                    Close
+                                </button>
+
+                                <h3 style={{ marginBottom: "1rem" }}>Purchase ID: {viewedPurchaseId}</h3>
+                                <table
+                                    style={{
+                                        width: "100%",
+                                        borderCollapse: "collapse",
+                                        textAlign: "left",
+                                    }}
+                                >
+                                    <thead>
+                                        <tr>
+                                            <th style={{ borderBottom: "2px solid #ddd", padding: "0.75rem" }}>
+                                                Item Name
+                                            </th>
+                                            <th style={{ borderBottom: "2px solid #ddd", padding: "0.75rem" }}>
+                                                Price
+                                            </th>
+                                            <th style={{ borderBottom: "2px solid #ddd", padding: "0.75rem" }}>
+                                                Quantity
+                                            </th>
+                                            <th style={{ borderBottom: "2px solid #ddd", padding: "0.75rem" }}>
+                                                Total
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {viewedItems.map((item, idx) => (
+                                            <tr key={idx} style={{ borderBottom: "1px solid #eee" }}>
+                                                <td style={{ padding: "0.5rem 0.75rem" }}>{item.item_name}</td>
+                                                <td style={{ padding: "0.5rem 0.75rem" }}>
+                                                    ${parseFloat(item.price).toFixed(2)}
+                                                </td>
+                                                <td style={{ padding: "0.5rem 0.75rem" }}>{item.quantity}</td>
+                                                <td style={{ padding: "0.5rem 0.75rem" }}>
+                                                    ${(item.price * item.quantity).toFixed(2)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            )}
 
             <div className="card">
                 <div className="card-header">
