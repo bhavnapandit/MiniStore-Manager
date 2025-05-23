@@ -8,7 +8,7 @@ function InventoryPage() {
 
  async function fetchItems() {
             try {
-                const response = await fetch('http://localhost:5000/api/items-with-inventory');
+                const response = await fetch('https://ministore-manager.onrender.com/api/items-with-inventory');
                 if (!response.ok) throw new Error('Failed to fetch items');
                 const data = await response.json();
                 setItems(data);
@@ -23,7 +23,7 @@ function InventoryPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:5000/api/inventory', {
+            const response = await fetch('https://ministore-manager.onrender.com/api/inventory', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -42,7 +42,7 @@ function InventoryPage() {
             setStock('');
 
             // Refresh inventory table
-            const updated = await fetch('http://localhost:5000/api/items-with-inventory');
+            const updated = await fetch('https://ministore-manager.onrender.com/api/items-with-inventory');
             const updatedData = await updated.json();
             setItems(updatedData);
 
@@ -57,7 +57,7 @@ function InventoryPage() {
         if (!confirmDelete) return;
 
         try {
-            const res = await fetch(`http://localhost:5000/api/inventory/${item_id}`, {
+            const res = await fetch(`https://ministore-manager.onrender.com/api/inventory/${item_id}`, {
                 method: "DELETE",
             });
 

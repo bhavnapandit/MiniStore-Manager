@@ -13,7 +13,7 @@ function ItemsPage() {
 
     const fetchAllItems = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/items');
+            const response = await fetch('https://ministore-manager.onrender.com/api/items');
             if (!response.ok) throw new Error('Failed to fetch items');
             const data = await response.json();
             setItems(data);
@@ -35,7 +35,7 @@ function ItemsPage() {
         }
 
         try {
-            const response = await fetch('http://localhost:5000/api/items', {
+            const response = await fetch('https://ministore-manager.onrender.com/api/items', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -76,7 +76,7 @@ function ItemsPage() {
 
     const handleUpdateClick = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/items/${id}`, {
+            const response = await fetch(`https://ministore-manager.onrender.com/api/items/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -102,7 +102,7 @@ function ItemsPage() {
 
     // const handleDeleteItem = async (itemId) => {
     //     try {
-    //         const response = await fetch(`http://localhost:5000/api/items/${itemId}`, {
+    //         const response = await fetch(`https://ministore-manager.onrender.com/api/items/${itemId}`, {
     //             method: 'DELETE',
     //         });
 

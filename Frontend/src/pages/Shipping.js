@@ -21,7 +21,7 @@ function ShippingPage() {
 
     const fetchInventory = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/items-with-inventory");
+            const res = await fetch("https://ministore-manager.onrender.com/api/items-with-inventory");
             if (!res.ok) throw new Error("Failed to fetch items");
             const data = await res.json();
             setInventory(data);
@@ -32,7 +32,7 @@ function ShippingPage() {
 
     const fetchPurchases = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/purchase");
+            const res = await fetch("https://ministore-manager.onrender.com/api/purchase");
             if (!res.ok) throw new Error("Failed to fetch purchases");
             const data = await res.json();
             console.log(data);
@@ -45,7 +45,7 @@ function ShippingPage() {
 
     const fetchShippingRecords = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/shipping");
+            const res = await fetch("https://ministore-manager.onrender.com/api/shipping");
             if (!res.ok) throw new Error("Failed to fetch shipping records");
             const data = await res.json();
             setShippingRecords(data);
@@ -89,7 +89,7 @@ function ShippingPage() {
         }
 
         try {
-            const res = await fetch("http://localhost:5000/api/shipping", {
+            const res = await fetch("https://ministore-manager.onrender.com/api/shipping", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),
@@ -118,7 +118,7 @@ function ShippingPage() {
     };
     const handleDelete = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/shipping/${id}`, {
+            const response = await fetch(`https://ministore-manager.onrender.com/api/shipping/${id}`, {
                 method: 'DELETE'
             });
 

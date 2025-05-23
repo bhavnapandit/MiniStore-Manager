@@ -15,7 +15,7 @@ function PurchasesPage() {
 
     const handleViewPurchase = async (purchaseId) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/purchase-details/${purchaseId}`);
+            const response = await fetch(`https://ministore-manager.onrender.com/api/purchase-details/${purchaseId}`);
             if (!response.ok) throw new Error('Failed to fetch purchase details');
             const data = await response.json();
             console.log(data);
@@ -32,7 +32,7 @@ function PurchasesPage() {
     // Fetch all purchases
     const fetchAllPurchases = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/purchase');
+            const response = await fetch('https://ministore-manager.onrender.com/api/purchase');
             if (!response.ok) throw new Error('Failed to fetch purchases');
             const data = await response.json();
             setPurchases(data);
@@ -44,7 +44,7 @@ function PurchasesPage() {
     // Fetch available items for the dropdown
     const fetchItems = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/items');
+            const response = await fetch('https://ministore-manager.onrender.com/api/items');
             if (!response.ok) throw new Error('Failed to fetch items');
             const data = await response.json();
             setItemsList(data);
@@ -124,7 +124,7 @@ function PurchasesPage() {
                 total_amount: calculateTotal()
             };
 
-            const response = await fetch('http://localhost:5000/api/purchase', {
+            const response = await fetch('https://ministore-manager.onrender.com/api/purchase', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -165,7 +165,7 @@ function PurchasesPage() {
     const handleDeletePurchase = async (purchaseId) => {
 
         try {
-            const response = await fetch(`http://localhost:5000/api/purchase/${purchaseId}`, {
+            const response = await fetch(`https://ministore-manager.onrender.com/api/purchase/${purchaseId}`, {
                 method: 'DELETE'
             });
 
