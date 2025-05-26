@@ -13,7 +13,8 @@ import {
     addShipping,
     getAllShipping,
     getPurchaseDetailsById,
-    deleteShipping
+    deleteShipping,
+    updateShipping
 
 } from '../controllers/storeController.js';
 
@@ -33,6 +34,8 @@ router.post('/shipping', addShipping);
 router.get('/shipping', getAllShipping);
 router.get('/purchase-details/:id', getPurchaseDetailsById);
 router.delete('/shipping/:id', deleteShipping);
+router.put('/shipping/:id', updateShipping);
+
 
 
 export default router;
