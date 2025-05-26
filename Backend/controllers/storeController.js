@@ -259,7 +259,7 @@ export const deletePurchase = async (req, res) => {
         // Start transaction to ensure data consistency
         await db.beginTransaction();
 
-        // First check if purchase exists
+        // First we need to check if purchase exists
         const [purchaseCheck] = await db.query(
             "SELECT id FROM purchases WHERE id = ?",
             [id]
@@ -269,13 +269,13 @@ export const deletePurchase = async (req, res) => {
             return res.status(404).json({ error: "Purchase not found" });
         }
 
-        // Get purchase items to restore inventory (optional - if you want to restore stock)
+        // Get purchase items to restore inventory
         const [purchaseItems] = await db.query(
             "SELECT item_id, quantity FROM purchase_items WHERE purchase_id = ?",
             [id]
         );
 
-        // Restore inventory stock (optional)
+        // Restore inventory stock
         for (const item of purchaseItems) {
             await db.query(
                 "UPDATE inventory SET stock = stock + ? WHERE item_id = ?",
@@ -314,7 +314,7 @@ export const addShipping = async (req, res) => {
     try {
         await db.beginTransaction();
 
-        // Step 1: Fetch items from original purchase
+        //fetch items from original purchase
         const [purchaseItemsRows] = await db.query(
             `SELECT item_id, quantity FROM purchase_items WHERE purchase_id = ?`,
             [purchase_id]
@@ -325,7 +325,7 @@ export const addShipping = async (req, res) => {
             purchasedItemMap[item_id] = quantity;
         }
 
-        // Step 2: Validate each item
+        // validate each item
         for (const { item_id, quantity } of items) {
             if (!purchasedItemMap[item_id]) {
                 const [[itemInfo]] = await db.query(
@@ -352,7 +352,7 @@ export const addShipping = async (req, res) => {
             }
         }
 
-        // Step 3: Insert into shipping table
+        // insert into shipping table
         const [shippingResult] = await db.query(
             `INSERT INTO shipping (purchase_id, shipping_date, shipping_address, status) VALUES (?, ?, ?, ?)`,
             [
@@ -365,7 +365,7 @@ export const addShipping = async (req, res) => {
 
         const shipping_id = shippingResult.insertId;
 
-        // Step 4: Insert into shipping_items
+        // insert into shipping_items
         for (const { item_id, quantity } of items) {
             await db.query(
                 `INSERT INTO shipping_items (shipping_id, item_id, quantity) VALUES (?, ?, ?)`,
@@ -473,7 +473,6 @@ export const updateShipping = async (req, res) => {
     }
 
     try {
-        // Dynamically build the SQL SET clause
         const fields = [];
         const values = [];
 
